@@ -1,6 +1,6 @@
 {
-  "name": "VW Partner Portal",
-  "short_name": "VW Partners",
+  "name": "VW Renting Portal",
+  "short_name": "VW Renting",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f9",
@@ -17,4 +17,5 @@
       "type": "image/svg+xml"
     }
   ]
+
 }
