@@ -45,6 +45,7 @@
     };
 
     // Función para mostrar resultados
+   // Función para mostrar resultados
     window.mostrarTracker = function(c) {
        document.getElementById('resultado').classList.remove('hidden');
        document.getElementById('resModelo').innerText = c.modelo;
@@ -67,8 +68,17 @@
                   </div>`;
        });
        document.getElementById('timelineRenting').innerHTML = html;
-    };
 
+       // LÓGICA DEL BOTÓN: Mostrar solo si el coche está listo
+       const btnNotificar = document.getElementById('btnNotificar');
+       if (c.pasoAInventario === true) {
+           btnNotificar.classList.remove('hidden');
+           btnNotificar.classList.add('flex'); // Lo mostramos y aplicamos flexbox
+       } else {
+           btnNotificar.classList.add('hidden');
+           btnNotificar.classList.remove('flex'); // Lo volvemos a ocultar
+       }
+    };
     // Función de WhatsApp actualizada con el nuevo enlace
     window.notificarCliente = function() {
       if (!cocheActual) return;
@@ -120,7 +130,11 @@ A continuación le dejamos la web donde podrá agendar la entrega de su vehícul
        <p id="resMatricula" class="text-center font-bold text-gray-500 bg-gray-100 w-max mx-auto px-3 py-1 rounded mb-6"></p>
        <div id="timelineRenting" class="mb-8"></div>
        <button onclick="notificarCliente()" class="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
+        <div id="timelineRenting" class="mb-8"></div>
+       
+       <button id="btnNotificar" onclick="notificarCliente()" class="hidden w-full bg-[#25D366] text-white font-bold py-4 rounded-xl items-center justify-center gap-2">
          <i class="ph-fill ph-whatsapp-logo text-2xl"></i> Avisar al Cliente
+       </button>
        </button>
     </div>
   </main>
