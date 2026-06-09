@@ -45,30 +45,78 @@
     };
 
     // Función para mostrar resultados
+   // Función para mostrar resultados con diseño Profesional tipo Correos/Amazon
     window.mostrarTracker = function(c) {
        document.getElementById('resultado').style.display = 'block';
        document.getElementById('resModelo').innerText = c.modelo;
        document.getElementById('resMatricula').innerText = c.matricula;
 
-       let html = "";
-       const cCheck = "bg-[#25D366] text-white";
-       const cWait = "bg-gray-200 text-gray-300";
+       // Contenedor principal de la línea vertical
+       let html = '<div class="relative border-l-2 border-gray-200 ml-4 space-y-8 mt-8 mb-10">';
+       
+       // Configuración de cada paso con sus emojis, colores y textos dinámicos
        const pasos = [
-         { ok: !!c.fechaDoc, t: 'Documentación' },
-         { ok: !!c.fechaTransporte, t: 'En Transporte' },
-         { ok: !!c.fechaPreparacion, t: 'En Preparación' },
-         { ok: c.pasoAInventario === true, t: 'Listo para Entrega' }
+         { 
+           ok: !!c.fechaDoc, 
+           t: 'Documentación', 
+           desc: c.fechaDoc ? `Recibida y validada el ${c.fechaDoc}` : 'Pendiente de recibir documentación',
+           icon: '📄', 
+           colorBg: 'bg-blue-500' 
+         },
+         { 
+           ok: !!c.fechaTransporte, 
+           t: 'En Tránsito', 
+           desc: c.fechaTransporte ? `En camino a concesionario desde el ${c.fechaTransporte}` : 'Esperando asignación de grúa/ruta',
+           icon: '🚛', 
+           colorBg: 'bg-indigo-500' 
+         },
+         { 
+           ok: !!c.fechaPreparacion, 
+           t: 'En Preparación', 
+           desc: c.fechaPreparacion ? `En preparación desde el ${c.fechaPreparacion}` : 'Pendiente de revisión pre-entrega',
+           icon: '🛠️', 
+           colorBg: 'bg-amber-500' 
+         },
+         { 
+           ok: c.pasoAInventario === true, 
+           t: 'Listo para Entrega', 
+           desc: c.pasoAInventario ? 'Vehículo 100% finalizado y aparcado' : 'Esperando finalización de procesos',
+           icon: '🏁', 
+           colorBg: 'bg-[#25D366]' 
+         }
        ];
 
-       pasos.forEach(p => {
-         html += `<div class="flex items-center gap-4 mb-4">
-                    <div class="${p.ok ? cCheck : cWait} rounded-full w-8 h-8 flex items-center justify-center font-bold">✓</div>
-                    <div class="font-bold text-gray-800">${p.t}</div>
-                  </div>`;
+       pasos.forEach((p, index) => {
+         // Estilos dependiendo de si el paso está completado o no
+         let bgClass = p.ok ? `${p.colorBg} text-white shadow-md border-transparent` : 'bg-gray-50 border-2 border-gray-300 text-transparent grayscale';
+         let textTitle = p.ok ? 'text-[#001e50]' : 'text-gray-400';
+         let textDesc = p.ok ? 'text-gray-600' : 'text-gray-400';
+         let pulseHtml = "";
+         
+         // Efecto visual: si este paso está Ok, pero el SIGUIENTE no lo está, significa que es el "Paso Actual". Le ponemos un efecto de latido.
+         let nextOk = pasos[index + 1] ? pasos[index + 1].ok : false;
+         if (p.ok && !nextOk && index !== 3) {
+             pulseHtml = `<span class="absolute inline-flex h-full w-full rounded-full ${p.colorBg} opacity-50 animate-ping"></span>`;
+         }
+
+         // Dibujamos la tarjeta del paso
+         html += `
+         <div class="relative flex items-center gap-4">
+            <div class="absolute -left-[17px] w-8 h-8 rounded-full flex items-center justify-center text-sm ring-4 ring-white transition-all duration-500 z-10 ${bgClass}">
+                ${pulseHtml}
+                <span class="relative z-20">${p.ok ? p.icon : '⏳'}</span>
+            </div>
+            <div class="pl-8">
+                <h3 class="font-black text-[14px] uppercase tracking-widest ${textTitle} transition-colors duration-300">${p.t}</h3>
+                <p class="text-[11px] font-bold ${textDesc} mt-0.5">${p.desc}</p>
+            </div>
+         </div>`;
        });
+
+       html += '</div>';
        document.getElementById('timelineRenting').innerHTML = html;
 
-       // LÓGICA DEL BOTÓN: Totalmente forzada a mostrarse solo si está listo
+       // LÓGICA DEL BOTÓN: Totalmente forzada a mostrarse solo si está listo en inventario
        const btnNotificar = document.getElementById('btnNotificar');
        if (c.pasoAInventario === true) {
            btnNotificar.style.display = 'flex';
