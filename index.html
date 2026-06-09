@@ -36,7 +36,7 @@
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
           Swal.fire('No encontrado', 'No hay registros en nuestras instalaciones.', 'info');
-          document.getElementById('resultado').classList.add('hidden'); return;
+          document.getElementById('resultado').style.display = 'none'; return;
         }
         cocheActual = querySnapshot.docs[0].data();
         mostrarTracker(cocheActual);
@@ -45,9 +45,8 @@
     };
 
     // Función para mostrar resultados
-   // Función para mostrar resultados
     window.mostrarTracker = function(c) {
-       document.getElementById('resultado').classList.remove('hidden');
+       document.getElementById('resultado').style.display = 'block';
        document.getElementById('resModelo').innerText = c.modelo;
        document.getElementById('resMatricula').innerText = c.matricula;
 
@@ -69,21 +68,19 @@
        });
        document.getElementById('timelineRenting').innerHTML = html;
 
-       // LÓGICA DEL BOTÓN: Mostrar solo si el coche está listo
+       // LÓGICA DEL BOTÓN: Totalmente forzada a mostrarse solo si está listo
        const btnNotificar = document.getElementById('btnNotificar');
        if (c.pasoAInventario === true) {
-           btnNotificar.classList.remove('hidden');
-           btnNotificar.classList.add('flex'); // Lo mostramos y aplicamos flexbox
+           btnNotificar.style.display = 'flex';
        } else {
-           btnNotificar.classList.add('hidden');
-           btnNotificar.classList.remove('flex'); // Lo volvemos a ocultar
+           btnNotificar.style.display = 'none';
        }
     };
-    // Función de WhatsApp actualizada con el nuevo enlace
+
+    // Función de WhatsApp actualizada
     window.notificarCliente = function() {
       if (!cocheActual) return;
 
-      // Enlace oficial de la App de Clientes
       const LINK_APP_CLIENTES = "https://vwmadrid.github.io/Entregas/"; 
       
       let estaListo = cocheActual.pasoAInventario === true;
@@ -125,16 +122,13 @@ A continuación le dejamos la web donde podrá agendar la entrega de su vehícul
         <button onclick="buscarCoche()" class="w-full bg-[#001e50] text-white font-black py-4 rounded-xl text-lg uppercase">Buscar Vehículo</button>
     </div>
     
-    <div id="resultado" class="hidden w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+    <div id="resultado" style="display: none;" class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
        <h2 id="resModelo" class="text-xl font-black text-[#001e50] uppercase text-center mb-1">Modelo</h2>
        <p id="resMatricula" class="text-center font-bold text-gray-500 bg-gray-100 w-max mx-auto px-3 py-1 rounded mb-6"></p>
        <div id="timelineRenting" class="mb-8"></div>
-       <button onclick="notificarCliente()" class="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
-        <div id="timelineRenting" class="mb-8"></div>
        
-       <button id="btnNotificar" onclick="notificarCliente()" class="hidden w-full bg-[#25D366] text-white font-bold py-4 rounded-xl items-center justify-center gap-2">
+       <button id="btnNotificar" onclick="notificarCliente()" style="display: none;" class="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
          <i class="ph-fill ph-whatsapp-logo text-2xl"></i> Avisar al Cliente
-       </button>
        </button>
     </div>
   </main>
