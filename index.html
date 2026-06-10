@@ -66,21 +66,21 @@
          { 
            ok: !!c.fechaTransporte, 
            t: 'En Tránsito', 
-           desc: c.fechaTransporte ? `En camino a concesionario desde el ${c.fechaTransporte}` : 'Esperando asignación de grúa/ruta',
+           desc: c.fechaTransporte ? `En camino a concesionario desde el ${c.fechaTransporte}` : 'Esperando entrada en nuestra campa',
            icon: '🚛', 
            colorBg: 'bg-indigo-500' 
          },
          { 
            ok: !!c.fechaPreparacion, 
            t: 'En Preparación', 
-           desc: c.fechaPreparacion ? `En preparación desde el ${c.fechaPreparacion}` : 'Pendiente de revisión pre-entrega',
+           desc: c.fechaPreparacion ? `En preparación desde el ${c.fechaPreparacion}` : 'Pendiente de revisión y preparación de pre-entrega',
            icon: '🛠️', 
            colorBg: 'bg-amber-500' 
          },
          { 
            ok: c.pasoAInventario === true, 
            t: 'Listo para Entrega', 
-           desc: c.pasoAInventario ? 'Vehículo 100% finalizado y aparcado' : 'Esperando finalización de procesos',
+           desc: c.pasoAInventario ? 'Vehículo preparado, dar disponibilidad al cliente a partir de hoy para que agende la recogida de su nuevo Volkswagen' : 'Esperando finalización de procesos',
            icon: '🏁', 
            colorBg: 'bg-[#25D366]' 
          }
