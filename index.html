@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta name="author" content="Manuel Arjona Carrera & Miriam Olmo Fernández">
+  <meta name="copyright" content="© 2026 Manuel Arjona Carrera & Miriam Olmo Fernández. Todos los derechos reservados.">
+  <meta name="application-name" content="GesCar OS / M2 Code Systems">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Agencias - Castellana Wagen M-40</title>
@@ -9,6 +12,15 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <script type="module">
+    /**
+     * 🔥 2. CABECERA DE PROPIEDAD INTELECTUAL 🔥
+     * @project GesCar OS (Portal de Renting)
+     * @author Manuel Arjona Carrera & Miriam Olmo Fernández (Equipo M2 Code Systems)
+     * @copyright © 2026 Manuel Arjona Carrera & Miriam Olmo Fernández. Todos los derechos reservados.
+     * * Este código fuente es propiedad exclusiva de sus autores.
+     * Queda estrictamente prohibida su copia, distribución, modificación 
+     * o uso comercial sin autorización expresa por escrito.
+     */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
     
@@ -44,8 +56,7 @@
       } catch (error) { Swal.fire('Error', 'Fallo de conexión.', 'error'); }
     };
 
-    // Función para mostrar resultados
-   // Función para mostrar resultados con diseño Profesional tipo Correos/Amazon
+    // Función para mostrar resultados con diseño Profesional tipo Correos/Amazon
     window.mostrarTracker = function(c) {
        document.getElementById('resultado').style.display = 'block';
        document.getElementById('resModelo').innerText = c.modelo;
