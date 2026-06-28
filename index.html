@@ -3,19 +3,50 @@
 <head>
   <meta name="author" content="Manuel Arjona Carrera & Miriam Olmo Fernández">
   <meta name="copyright" content="© 2026 Manuel Arjona Carrera & Miriam Olmo Fernández. Todos los derechos reservados.">
-  <meta name="application-name" content="GesCar OS / M2 Code Systems, S.L.">
+  <meta name="application-name" content="GesCar OS / B2B">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal Agencias - Castellana Wagen M-40</title>
+  <title>GesCar B2B | Castellana Wagen M-40</title>
   
+  <!-- Importación de librerías CSS y JS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+  <!-- Reglas CSS personalizadas para animaciones y fuentes -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; } /* Fondo gris muy claro casi blanco */
+    
+    /* Animación de entrada fluida */
+    .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Barra de desplazamiento limpia */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    /* Estilos para los campos de entrada de texto */
+    .input-clean {
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        color: #0f172a;
+        transition: all 0.3s ease;
+    }
+    .input-clean:focus {
+        border-color: #00B0F0;
+        box-shadow: 0 0 0 4px rgba(0, 176, 240, 0.1);
+        outline: none;
+    }
+  </style>
+
   <script type="module">
+    // Importación de módulos de Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
     
+    // Configuración de la base de datos
     const firebaseConfig = {
       apiKey: "AIzaSyCRfERugbIVfAXtKa7mGdLLTm6xwxb5wlE",
       authDomain: "gestion-flotas-vw.firebaseapp.com",
@@ -28,135 +59,166 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
+    // Variables de estado
     let cocheActual = null;
     window.nombreAgenciaGlobal = ""; 
 
-    // 1. CREDENCIALES
+    // 1. OBJETO DE CREDENCIALES
     const credencialesRenting = {
-        "ARVAL": "Arval2026",
-        "VW RENTING": "Vw2026",
-        "ATHLON": "Athlon2026",
-        "ALPHABET": "Alphabet2026",
-        "AYVENS": "Ayvens2026",
-        "SANTANDER RENTING": "Santander2026",
-        "SABADELL": "Sabadell2026",
-        "CAIXA": "Caixa2026"
-    };
-   // 2. LOGOS (Repositorio propio para máxima estabilidad y seguridad)
-    const logosRenting = {
-        "ARVAL": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/arval.png",
-        "VW RENTING": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/vwrenting.png",
-        "ATHLON": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/athlon.png",
-        "ALPHABET": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/alphabet.png",
-        "AYVENS": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/ayvens.png",
-        "SANTANDER RENTING": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/santander.png",
-        "SABADELL": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/sabadell.png",
-        "CAIXA": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/caixa.png"
+        "ARVAL": "Arval2026", "VW RENTING": "Vw2026", "ATHLON": "Athlon2026", 
+        "ALPHABET": "Alphabet2026", "AYVENS": "Ayvens2026", "SANTANDER RENTING": "Santander2026", 
+        "SABADELL": "Sabadell2026", "CAIXA": "Caixa2026"
     };
 
-    // 3. LOGIN Y CONSTRUCCIÓN DEL BANNER VIP
+    // 2. OBJETO DE LOGOS (Apuntando a tu repositorio en GitHub)
+    const logosRenting = {
+        "ARVAL": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/arval.png",
+        "VW RENTING": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/vwrenting.png",
+        "ATHLON": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/athlon.png",
+        "ALPHABET": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/alphabet.png",
+        "AYVENS": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/ayvens.png",
+        "SANTANDER RENTING": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/santander.png",
+        "SABADELL": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/sabadell.png",
+        "CAIXA": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/caixa.png"
+    };
+
+    // 3. LÓGICA DE LOGIN
     window.verificarAcceso = function() {
         const usuarioInput = document.getElementById('inputUsuario').value.trim().toUpperCase();
         const passInput = document.getElementById('inputPassword').value.trim();
 
         if (!usuarioInput || !passInput) {
-            return Swal.fire('Acceso denegado', 'Complete sus credenciales corporativas.', 'warning');
+            return Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Complete sus credenciales.', confirmButtonColor: '#001e50' });
         }
 
-        if (credencialesRenting[usuarioInput] && credencialesRenting[usuarioInput] === passInput) {
-            window.nombreAgenciaGlobal = usuarioInput;
+        const btn = document.getElementById('btnLogin');
+        btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Autenticando...';
 
-            // Actualizamos el Banner Gigante (Hero)
-            document.getElementById('hero-nombre-agencia').innerText = window.nombreAgenciaGlobal;
-            
-            // Configurar Logo o Letra Inicial
-            const imgElement = document.getElementById('hero-logo-img');
-            const txtElement = document.getElementById('hero-logo-txt');
-            
-            if (logosRenting[usuarioInput]) {
-                imgElement.src = logosRenting[usuarioInput];
-                imgElement.classList.remove('hidden');
-                txtElement.classList.add('hidden');
+        setTimeout(() => {
+            if (credencialesRenting[usuarioInput] && credencialesRenting[usuarioInput] === passInput) {
+               // Dentro de verificarAcceso, cuando el login es correcto:
+window.nombreAgenciaGlobal = usuarioInput;
+
+// Guardar sesión permanentemente (recordar usuario y pass)
+localStorage.setItem('gescar_session', JSON.stringify({
+    usuario: usuarioInput,
+    pass: passInput
+}));
+
+// ... resto del código que ya tienes para cambiar de pantalla
+                
+                // Muestra el nombre en el subtítulo del Dashboard
+                document.getElementById('hero-nombre-agencia').innerText = "Portal " + window.nombreAgenciaGlobal;
+                
+                // Inyecta la URL de la imagen en la etiqueta <img>
+                const imgElement = document.getElementById('dashboard-logo-img');
+                const txtElement = document.getElementById('dashboard-logo-txt');
+                
+                if (logosRenting[usuarioInput]) {
+                    imgElement.src = logosRenting[usuarioInput];
+                    imgElement.classList.remove('hidden');
+                    txtElement.classList.add('hidden');
+                } else {
+                    imgElement.classList.add('hidden');
+                    txtElement.innerText = window.nombreAgenciaGlobal;
+                    txtElement.classList.remove('hidden');
+                }
+
+                document.getElementById('nav-agency-name').innerText = window.nombreAgenciaGlobal;
+
+                // Cambio de pantalla alterando las clases CSS
+                document.getElementById('pantalla-login').classList.add('hidden');
+                document.getElementById('pantalla-tracker').classList.remove('hidden');
+                document.getElementById('pantalla-tracker').classList.add('flex', 'animate-fade-in');
+
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Conexión Establecida', showConfirmButton: false, timer: 2000 });
             } else {
-                imgElement.classList.add('hidden');
-                txtElement.innerText = window.nombreAgenciaGlobal.charAt(0);
-                txtElement.classList.remove('hidden');
+                Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Credenciales incorrectas.', confirmButtonColor: '#ef4444' });
+                document.getElementById('inputPassword').value = '';
+                btn.innerHTML = 'ACCEDER AL SISTEMA <i class="ph-bold ph-arrow-right"></i>';
             }
-
-            // Cambiar de pantalla con una transición suave
-            document.getElementById('pantalla-login').classList.add('hidden');
-            document.getElementById('pantalla-tracker').classList.remove('hidden');
-            document.getElementById('pantalla-tracker').classList.add('flex', 'animate-fade-in');
-
-        } else {
-            Swal.fire('Acceso denegado', 'Credenciales incorrectas.', 'error');
-            document.getElementById('inputPassword').value = '';
-        }
+        }, 500); 
     };
 
-    // Función a prueba de fallos para la imagen (se llama desde el HTML)
+    // Fallback de código por si la imagen de GitHub no carga
     window.logoError = function() {
-        document.getElementById('hero-logo-img').classList.add('hidden');
-        document.getElementById('hero-logo-txt').innerText = window.nombreAgenciaGlobal.charAt(0);
-        document.getElementById('hero-logo-txt').classList.remove('hidden');
+        document.getElementById('dashboard-logo-img').classList.add('hidden');
+        const txtElement = document.getElementById('dashboard-logo-txt');
+        txtElement.innerText = window.nombreAgenciaGlobal;
+        txtElement.classList.remove('hidden');
     };
 
+    // Evento para iniciar sesión presionando la tecla Enter
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inputPassword').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') { window.verificarAcceso(); }
+            if (e.key === 'Enter') window.verificarAcceso();
         });
     });
 
-    // 4. BÚSQUEDA DE VEHÍCULO
+    // 4. LÓGICA DE BÚSQUEDA DE VEHÍCULO
     window.buscarCoche = async function() {
       const input = document.getElementById('inputMatricula');
       const mat = input.value.replace(/\s/g, '').toUpperCase();
-      if (!mat) return Swal.fire('Error', 'Introduce una matrícula', 'error');
+      if (!mat) return Swal.fire({ icon: 'warning', title: 'Requerido', text: 'Introduce matrícula o bastidor', confirmButtonColor: '#001e50' });
 
-      Swal.fire({ title: 'Buscando...', didOpen: () => Swal.showLoading() });
+      const btn = document.getElementById('btnBuscar');
+      btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl text-white"></i>';
+      
       try {
         const q = query(collection(db, "vehiculos"), where("matricula", "==", mat));
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
-          Swal.fire('No encontrado', 'Vehículo no localizado en la campa.', 'info');
-          document.getElementById('resultado').style.display = 'none'; return;
+          btn.innerHTML = '<i class="ph-bold ph-magnifying-glass text-xl text-white"></i>';
+          document.getElementById('resultado').style.display = 'none'; 
+          return Swal.fire({ icon: 'info', title: 'No localizado', text: 'Vehículo no encontrado.', confirmButtonColor: '#001e50' });
         }
         cocheActual = querySnapshot.docs[0].data();
         window.mostrarTracker(cocheActual);
-        Swal.close();
-      } catch (error) { Swal.fire('Error', 'Fallo de red.', 'error'); }
+        btn.innerHTML = '<i class="ph-bold ph-magnifying-glass text-xl text-white"></i>';
+      } catch (error) { 
+        btn.innerHTML = '<i class="ph-bold ph-magnifying-glass text-xl text-white"></i>';
+        Swal.fire({ icon: 'error', title: 'Error de red', confirmButtonColor: '#ef4444' }); 
+      }
     };
 
-    // 5. RENDERIZADO DEL TRACKER (ESTILO AMAZON/CORREOS)
+    // 5. CONSTRUCCIÓN HTML DEL TIMELINE
     window.mostrarTracker = function(c) {
-       document.getElementById('resultado').style.display = 'block';
+       const resDiv = document.getElementById('resultado');
+       resDiv.style.display = 'block';
+       resDiv.classList.add('animate-fade-in');
+       
        document.getElementById('resModelo').innerText = c.modelo;
        document.getElementById('resMatricula').innerText = c.matricula;
 
-       let html = '<div class="relative border-l-2 border-gray-200 ml-4 space-y-8 mt-8 mb-10">';
+       let html = '<div class="relative border-l-2 border-slate-200 ml-5 space-y-8 mt-10 mb-10">';
        const pasos = [
-         { ok: !!c.fechaDoc, t: 'Documentación', desc: c.fechaDoc ? `Validada el ${c.fechaDoc}` : 'Pendiente de documentación', icon: '📄', colorBg: 'bg-[#00B0F0]' },
-         { ok: !!c.fechaTransporte, t: 'En Tránsito', desc: c.fechaTransporte ? `Entrada en campa ${c.fechaTransporte}` : 'Esperando recepción física', icon: '🚛', colorBg: 'bg-indigo-500' },
-         { ok: !!c.fechaPreparacion, t: 'En Preparación', desc: c.fechaPreparacion ? `Taller: ${c.fechaPreparacion}` : 'Pendiente de pre-entrega', icon: '🛠️', colorBg: 'bg-amber-500' },
-         { ok: c.pasoAInventario === true, t: 'Listo para Entrega', desc: c.pasoAInventario ? 'Vehículo preparado. Informe al cliente.' : 'Procesos en curso', icon: '🏁', colorBg: 'bg-[#25D366]' }
+         { ok: !!c.fechaDoc, t: 'Documentación', desc: c.fechaDoc ? `Validada el ${c.fechaDoc}` : 'Pendiente', icon: 'ph-file-text', colorText: 'text-[#001e50]', colorBg: 'bg-blue-100', border: 'border-[#001e50]' },
+         { ok: !!c.fechaTransporte, t: 'En Tránsito', desc: c.fechaTransporte ? `Recepción: ${c.fechaTransporte}` : 'Pendiente', icon: 'ph-truck', colorText: 'text-[#001e50]', colorBg: 'bg-indigo-100', border: 'border-[#001e50]' },
+         { ok: !!c.fechaPreparacion, t: 'Preparación', desc: c.fechaPreparacion ? `Taller: ${c.fechaPreparacion}` : 'Pendiente', icon: 'ph-wrench', colorText: 'text-[#001e50]', colorBg: 'bg-amber-100', border: 'border-[#001e50]' },
+         { ok: c.pasoAInventario === true, t: 'Listo para Entrega', desc: c.pasoAInventario ? 'Vehículo finalizado' : 'En proceso', icon: 'ph-check-circle', colorText: 'text-[#25D366]', colorBg: 'bg-green-100', border: 'border-[#25D366]' }
        ];
 
        pasos.forEach((p, index) => {
-         let bgClass = p.ok ? `${p.colorBg} text-white shadow-md` : 'bg-gray-100 border-2 border-gray-300 text-transparent grayscale';
-         let textTitle = p.ok ? 'text-[#001e50]' : 'text-gray-400';
-         let textDesc = p.ok ? 'text-gray-600' : 'text-gray-400';
-         let pulseHtml = (p.ok && (!pasos[index + 1] || !pasos[index + 1].ok) && index !== 3) 
-            ? `<span class="absolute inline-flex h-full w-full rounded-full ${p.colorBg} opacity-50 animate-ping"></span>` : "";
+         let isCompleted = p.ok;
+         let isActive = p.ok && (!pasos[index + 1] || !pasos[index + 1].ok) && index !== 3;
+         
+         let iconClass = isCompleted ? p.colorText : 'text-slate-400';
+         let dotBg = isCompleted ? 'bg-white' : 'bg-slate-50';
+         let dotBorder = isCompleted ? p.border : 'border-slate-300';
+         let textTitle = isCompleted ? 'text-[#001e50]' : 'text-slate-400';
+         let textDesc = isCompleted ? 'text-slate-500' : 'text-slate-400';
+         
+         let pulse = isActive ? `<span class="absolute inset-0 rounded-full ${p.colorBg} animate-ping"></span>` : "";
 
          html += `
-         <div class="relative flex items-center gap-4 group">
-            <div class="absolute -left-[17px] w-8 h-8 rounded-full flex items-center justify-center text-sm ring-4 ring-white transition-all duration-500 z-10 ${bgClass}">
-                ${pulseHtml}
-                <span class="relative z-20">${p.ok ? p.icon : '⏳'}</span>
+         <div class="relative flex items-start gap-6 group">
+            <div class="absolute -left-[21px] w-10 h-10 rounded-full flex items-center justify-center border-2 ${dotBorder} ${dotBg} z-10 transition-all duration-500 shadow-sm">
+                ${pulse}
+                <i class="ph-fill ${p.icon} text-lg ${iconClass} relative z-20"></i>
             </div>
-            <div class="pl-8 transition-transform duration-300 group-hover:translate-x-1">
-                <h3 class="font-black text-[14px] uppercase tracking-widest ${textTitle}">${p.t}</h3>
-                <p class="text-[11px] font-bold ${textDesc} mt-0.5">${p.desc}</p>
+            <div class="pl-8 pt-1 transition-transform duration-300 group-hover:translate-x-1">
+                <h3 class="font-bold text-[15px] uppercase tracking-wider ${textTitle}">${p.t}</h3>
+                <p class="text-sm font-medium ${textDesc} mt-1">${p.desc}</p>
             </div>
          </div>`;
        });
@@ -167,10 +229,10 @@
        document.getElementById('btnNotificar').style.display = (c.pasoAInventario === true) ? 'flex' : 'none';
     };
 
-    // 6. HERRAMIENTAS DE NOTIFICACIÓN CORPORATIVA
+    // 6. FUNCIONES DE PORTAPAPELES Y WHATSAPP
     window.copiarAlPortapapeles = function(textoCodificado) {
       navigator.clipboard.writeText(decodeURIComponent(textoCodificado)).then(() => {
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Copiado al portapapeles', showConfirmButton: false, timer: 2500 });
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Copiado al portapapeles', showConfirmButton: false, timer: 2000 });
       });
     };
 
@@ -185,128 +247,193 @@
       Swal.fire({
         title: 'ENVIAR INVITACIÓN',
         html: `
-          <div style="text-align:left; font-size:13px; color:#555; margin-bottom:15px; line-height:1.4;">
-            El mensaje incluye un enlace directo para que su cliente elija el día y la hora de recogida en Castellana Wagen.
+          <div style="text-align:left; font-size:14px; color:#64748b; margin-bottom:20px; line-height:1.5;">
+            El cliente recibirá un enlace seguro para agendar la recogida en Castellana Wagen.
           </div>
-          <div style="background:#f1f5f9; border-left: 4px solid #00B0F0; padding:15px; border-radius:8px; text-align:left; font-size:11px; font-family:monospace; color:#334155; white-space: pre-wrap; margin-bottom: 25px; max-height: 180px; overflow-y: auto;">🚙 *Entrega de su nuevo vehículo*
+          <div style="background:#f8fafc; border-left: 4px solid #00B0F0; padding:15px; border-radius:8px; text-align:left; font-size:12px; font-family:monospace; color:#475569; white-space: pre-wrap; margin-bottom: 25px; max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0;">🚙 *Entrega de su nuevo vehículo*
 
 Estimado/a cliente,
 
-Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volkswagen ${cocheActual.modelo}* (Matrícula: ${cocheActual.matricula}) ya se encuentra matriculado y preparado para su entrega...
-
-👉 ${LINK_APP_CLIENTES}</div>
+Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volkswagen ${cocheActual.modelo}* (Matrícula: ${cocheActual.matricula}) ya se encuentra matriculado...</div>
           
-          <div style="display:flex; flex-direction:column; gap:10px;">
-            <button onclick="window.open('https://wa.me/?text=${encodeURIComponent(whatsappText)}', '_blank')" style="background:#25D366; color:white; border:none; padding:14px; border-radius:10px; font-weight:900; font-size: 14px; cursor:pointer; width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
-              <i class="ph-fill ph-whatsapp-logo text-2xl"></i> Abrir WhatsApp
+          <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
+            <button onclick="window.open('https://wa.me/?text=${encodeURIComponent(whatsappText)}', '_blank')" class="w-full bg-[#25D366] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-600 transition shadow-md">
+              <i class="ph-fill ph-whatsapp-logo text-2xl"></i> Enviar WhatsApp
             </button>
-            <button onclick="window.open('mailto:?subject=${encodeURIComponent(emailSubject)}&body=${emailBody}', '_blank')" style="background:#001e50; color:white; border:none; padding:14px; border-radius:10px; font-weight:900; font-size: 14px; cursor:pointer; width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
-              <i class="ph-fill ph-envelope-simple text-2xl"></i> Crear Email
+            <button onclick="window.open('mailto:?subject=${encodeURIComponent(emailSubject)}&body=${emailBody}', '_blank')" class="w-full bg-[#001e50] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-900 transition shadow-md">
+              <i class="ph-fill ph-envelope-simple text-2xl"></i> Enviar Email
             </button>
-            <button onclick="window.copiarAlPortapapeles('${encodeURIComponent(whatsappText)}')" style="background:#64748b; color:white; border:none; padding:14px; border-radius:10px; font-weight:900; font-size: 14px; cursor:pointer; width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
-              <i class="ph-fill ph-copy text-2xl"></i> Copiar Texto (Portapapeles)
+            <button onclick="window.copiarAlPortapapeles('${encodeURIComponent(whatsappText)}')" class="w-full bg-slate-200 text-slate-800 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-300 transition">
+              <i class="ph-bold ph-copy text-2xl"></i> Copiar Texto
             </button>
           </div>
         `,
-        showConfirmButton: false, showCloseButton: true, width: '500px', customClass: { popup: 'rounded-3xl' }
+        showConfirmButton: false, showCloseButton: true, width: '450px',
+        customClass: { popup: 'rounded-3xl' }
       });
     };
   </script>
-
-  <style>
-    /* Efecto de entrada suave */
-    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
 </head>
 
-<body class="bg-[#f8fafc] min-h-screen flex flex-col font-sans">
-
-  <header class="w-full bg-white border-b border-gray-200 shadow-sm py-4 px-6 z-10 relative">
-    <div class="max-w-5xl mx-auto flex items-center gap-4">
-        <div class="w-10 h-10">
-            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" alt="VW Logo" class="w-full h-full object-contain">
+<body class="min-h-screen flex flex-col relative selection:bg-[#00B0F0] selection:text-white">
+  
+  <!-- CABECERA SUPERIOR (Se muestra tras el login) -->
+  <header id="main-header" class="w-full border-b border-slate-200 bg-white hidden relative z-50 shadow-sm">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" class="h-8 w-auto">
+            <div class="h-6 w-px bg-slate-200"></div>
+            <span class="text-[#001e50] font-bold text-sm tracking-widest uppercase">Castellana Wagen</span>
         </div>
-        <div>
-            <h1 class="text-lg font-black text-[#001e50] uppercase tracking-tight leading-tight">Castellana Wagen M-40</h1>
-            <p class="text-[9px] font-bold text-[#00B0F0] uppercase tracking-widest">B2B Delivery Network</p>
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <i class="ph-fill ph-user text-[#00B0F0]"></i>
+            </div>
+            <span id="nav-agency-name" class="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Agencia</span>
+            <button onclick="window.cerrarSesion()" class="ml-4 text-slate-400 hover:text-red-500 transition">
+                <i class="ph-bold ph-sign-out text-xl"></i>
+            </button>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <i class="ph-fill ph-user text-[#00B0F0]"></i>
+            </div>
+            <span id="nav-agency-name" class="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Agencia</span>
         </div>
     </div>
   </header>
 
-  <main id="pantalla-login" class="flex-1 flex flex-col items-center justify-center p-6 relative">
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-[20%] -right-[10%] w-[500px] h-[500px] rounded-full bg-blue-100/50 blur-3xl"></div>
-        <div class="absolute -bottom-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-indigo-100/50 blur-3xl"></div>
-    </div>
-
-    <div class="bg-white/80 backdrop-blur-xl p-10 rounded-[30px] shadow-2xl shadow-blue-900/10 w-full max-w-sm border border-white relative z-10">
-        <div class="bg-gradient-to-br from-[#001e50] to-[#00B0F0] w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-blue-500/30 rotate-3">
-            <i class="ph-fill ph-buildings text-4xl text-white -rotate-3"></i>
+  <!-- ============================================== -->
+  <!-- PANTALLA 1: FORMULARIO DE LOGIN -->
+  <!-- ============================================== -->
+  <main id="pantalla-login" class="flex-1 flex items-center justify-center p-4 relative z-10">
+    <div class="bg-white p-10 sm:p-12 rounded-[2rem] w-full max-w-md shadow-2xl shadow-slate-200 border border-slate-100">
+        
+        <div class="flex flex-col items-center mb-10">
+            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" class="h-16 w-auto mb-6">
+            <h2 class="text-3xl font-black text-[#001e50] tracking-tight">GesCar B2B</h2>
+            <p class="text-sm font-bold text-[#00B0F0] uppercase tracking-[0.2em] mt-2">Delivery Network</p>
         </div>
         
-        <h2 class="text-2xl font-black text-[#001e50] mb-1">Acceso a Portal</h2>
-        <p class="text-xs text-gray-500 mb-8 font-medium">Plataforma exclusiva para agencias.</p>
-        
-        <div class="space-y-4 mb-8">
-            <input type="text" id="inputUsuario" placeholder="CÓDIGO DE AGENCIA" class="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-black text-center uppercase tracking-widest outline-none focus:border-[#00B0F0] focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder:font-medium placeholder:tracking-normal">
+        <div class="space-y-5 mb-8">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="ph-fill ph-buildings text-slate-400 text-lg"></i>
+                </div>
+                <input type="text" id="inputUsuario" placeholder="CÓDIGO DE AGENCIA" class="input-clean w-full pl-12 pr-4 py-4 rounded-xl text-sm font-bold uppercase tracking-widest placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-medium">
+            </div>
             
-            <input type="password" id="inputPassword" placeholder="CONTRASEÑA DE ACCESO" class="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-black text-center outline-none focus:border-[#00B0F0] focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder:font-medium">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="ph-fill ph-lock-key text-slate-400 text-lg"></i>
+                </div>
+                <input type="password" id="inputPassword" placeholder="CONTRASEÑA" class="input-clean w-full pl-12 pr-4 py-4 rounded-xl text-sm font-bold placeholder:text-slate-400 placeholder:font-medium">
+            </div>
         </div>
         
-        <button onclick="window.verificarAcceso()" class="w-full bg-[#001e50] text-white font-black py-4 rounded-xl text-sm uppercase tracking-widest transition hover:bg-[#00B0F0] shadow-lg shadow-[#001e50]/20 hover:-translate-y-0.5">
-            Validar Acceso
+        <button id="btnLogin" onclick="window.verificarAcceso()" class="w-full bg-[#001e50] text-white font-black py-4 rounded-xl text-sm uppercase tracking-widest transition-all hover:bg-[#00B0F0] shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+            ACCEDER AL SISTEMA <i class="ph-bold ph-arrow-right"></i>
         </button>
     </div>
   </main>
 
-  <main id="pantalla-tracker" class="flex-1 hidden flex-col items-center p-4 sm:p-6 w-full max-w-2xl mx-auto">
+  <!-- ============================================== -->
+  <!-- PANTALLA 2: DASHBOARD (DISEÑO LIMPIO) -->
+  <!-- ============================================== -->
+  <main id="pantalla-tracker" class="flex-1 hidden flex-col items-center p-4 sm:p-8 w-full max-w-5xl mx-auto relative z-10">
     
-    <div class="w-full bg-gradient-to-r from-[#001e50] via-[#003070] to-[#00B0F0] rounded-[30px] p-8 text-white mb-8 shadow-2xl shadow-blue-900/20 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden border border-blue-400/30">
-        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+    <!-- CONTENEDOR DEL LOGO DE LA AGENCIA GIGANTE -->
+    <!-- NOTA CÓDIGO: Las clases w-48 sm:w-72 md:w-96 y h-32 sm:h-48 aumentan radicalmente el tamaño -->
+    <div class="w-full bg-white rounded-[2rem] p-8 sm:p-12 mb-8 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-8 text-center sm:text-left">
         
-        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-[#001e50] font-black text-4xl shadow-inner relative z-10 border-4 border-white/20 shrink-0">
-            <img id="hero-logo-img" src="" class="w-full h-full object-contain p-4 hidden" onerror="window.logoError()">
-            <span id="hero-logo-txt" class="hidden">A</span>
+        <!-- LOGO RENTING AMPLIADO -->
+        <div class="w-48 sm:w-72 md:w-96 h-32 sm:h-48 flex items-center justify-center shrink-0">
+            <!-- La imagen ocupa el 100% del contenedor manteniendo su proporción -->
+            <img id="dashboard-logo-img" src="" class="w-full h-full object-contain hidden" onerror="window.logoError()">
+            <span id="dashboard-logo-txt" class="hidden text-[#001e50] font-black text-4xl sm:text-5xl tracking-widest uppercase px-2"></span>
         </div>
         
-        <div class="text-center sm:text-left relative z-10">
-            <p class="text-xs font-bold tracking-widest text-blue-200 uppercase mb-1 drop-shadow-md">Portal Oficial de Entregas</p>
-            <h2 id="hero-nombre-agencia" class="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-lg">AGENCIA</h2>
+        <!-- TEXTO DEL BANNER -->
+        <div>
+            <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-4">
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00B0F0] opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-[#00B0F0]"></span></span>
+                <span class="text-[10px] font-bold text-[#001e50] uppercase tracking-widest">Portal Conectado</span>
+            </div>
+            <h2 id="hero-nombre-agencia" class="text-3xl sm:text-4xl font-black text-[#001e50] tracking-tight mb-2">Portal Agencia</h2>
+            <p class="text-sm font-medium text-slate-500">Localizador en tiempo real de Castellana Wagen.</p>
         </div>
     </div>
 
-    <div class="bg-white p-8 rounded-[30px] shadow-xl shadow-gray-200/50 w-full border border-gray-100 mb-6">
-        <div class="flex items-center gap-3 mb-6">
-            <i class="ph-fill ph-magnifying-glass text-2xl text-[#00B0F0]"></i>
-            <h2 class="text-xl font-black text-[#001e50]">Localizar Vehículo</h2>
+    <!-- REJILLA DE BÚSQUEDA Y RESULTADOS -->
+    <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- CAJA DE BÚSQUEDA -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+                <h3 class="text-sm font-bold text-[#001e50] uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-magnifying-glass text-[#00B0F0]"></i> Buscar Vehículo
+                </h3>
+                <div class="relative mb-4">
+                    <input type="text" id="inputMatricula" placeholder="MATRÍCULA / BASTIDOR" class="input-clean w-full px-5 py-5 rounded-xl text-xl font-black text-center uppercase tracking-[0.2em] placeholder:text-slate-400 placeholder:text-sm placeholder:tracking-normal placeholder:font-medium">
+                </div>
+                <button id="btnBuscar" onclick="window.buscarCoche()" class="w-full bg-[#001e50] text-white font-black py-4 rounded-xl text-lg transition hover:bg-[#00B0F0] shadow-lg shadow-blue-900/20 flex items-center justify-center">
+                    <i class="ph-bold ph-magnifying-glass text-xl"></i>
+                </button>
+            </div>
         </div>
-        <div class="flex flex-col sm:flex-row gap-4">
-            <input type="text" id="inputMatricula" placeholder="MATRÍCULA / BASTIDOR" class="flex-1 px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl text-xl font-black text-center sm:text-left uppercase tracking-widest outline-none focus:border-[#00B0F0] transition placeholder:text-base placeholder:tracking-normal placeholder:font-medium">
-            <button onclick="window.buscarCoche()" class="bg-[#001e50] text-white font-black py-4 px-8 rounded-xl text-sm uppercase tracking-widest transition hover:bg-[#00B0F0] shadow-lg shadow-[#001e50]/20 shrink-0">
-                Buscar
-            </button>
+        
+        <!-- TIMELINE DE RESULTADOS -->
+        <div class="lg:col-span-7">
+            <div id="resultado" style="display: none;" class="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 h-full">
+                
+                <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 mb-10 pb-8 border-b border-slate-100">
+                    <div>
+                        <p class="text-[10px] font-bold text-[#00B0F0] uppercase tracking-widest mb-1">Unidad Identificada</p>
+                        <h2 id="resModelo" class="text-3xl font-black text-[#001e50] uppercase tracking-tight">Modelo</h2>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-lg">
+                        <span id="resMatricula" class="font-black text-xl tracking-[0.15em] text-[#001e50]"></span>
+                    </div>
+                </div>
+
+                <!-- Contenedor del cronograma que se genera con JS -->
+                <div id="timelineRenting" class="mb-10"></div>
+                
+                <button id="btnNotificar" onclick="window.notificarCliente()" style="display: none;" class="w-full bg-[#001e50] text-white font-black py-5 rounded-xl flex items-center justify-center gap-3 hover:bg-[#00B0F0] transition shadow-lg shadow-blue-900/20 text-sm uppercase tracking-widest">
+                    GENERAR INVITACIÓN VIP <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </div>
         </div>
-    </div>
-    
-    <div id="resultado" style="display: none;" class="w-full bg-white rounded-[30px] shadow-xl shadow-gray-200/50 p-8 border border-gray-100">
-       <div class="text-center mb-8 bg-gray-50 rounded-2xl p-6 border border-gray-100">
-           <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Vehículo Localizado</p>
-           <h2 id="resModelo" class="text-2xl font-black text-[#001e50] uppercase mb-3">Modelo</h2>
-           <div class="inline-flex items-center justify-center border-2 border-[#001e50] rounded-md px-3 py-1 bg-white">
-               <div class="bg-[#001e50] w-4 h-full absolute left-0 top-0"></div>
-               <span id="resMatricula" class="font-black text-lg tracking-widest text-[#001e50]"></span>
-           </div>
-       </div>
 
-       <div id="timelineRenting" class="mb-10 pl-2"></div>
-       
-       <button id="btnNotificar" onclick="window.notificarCliente()" style="display: none;" class="w-full bg-[#25D366] text-white font-black py-5 rounded-xl flex items-center justify-center gap-3 hover:bg-green-600 transition shadow-lg shadow-green-600/30 text-base uppercase tracking-widest">
-         <i class="ph-fill ph-paper-plane-right text-2xl"></i> Enviar Invitación al Cliente
-       </button>
     </div>
-
   </main>
 
+  <script>
+    // Lógica adicional para mostrar el encabezado solo después de iniciar sesión
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.target.classList.contains('hidden')) {
+          document.getElementById('main-header').classList.remove('hidden');
+        }
+      });
+    });
+    observer.observe(document.getElementById('pantalla-login'), { attributes: true, attributeFilter: ['class'] });
+    // Autologin al cargar la página
+    window.onload = function() {
+        const sesionGuardada = localStorage.getItem('gescar_session');
+        if (sesionGuardada) {
+            const { usuario, pass } = JSON.parse(sesionGuardada);
+            document.getElementById('inputUsuario').value = usuario;
+            document.getElementById('inputPassword').value = pass;
+            window.verificarAcceso(); // Ejecuta el login automáticamente
+        }
+    };
+
+    // Función de cierre de sesión
+    window.cerrarSesion = function() {
+        localStorage.removeItem('gescar_session');
+        location.reload(); // Recarga la página volviendo al login
+    };
+  </script>
 </body>
 </html>
