@@ -8,15 +8,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GesCar B2B | Castellana Wagen M-40</title>
   
-  <!-- Importación de librerías CSS y JS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-  <!-- Reglas CSS personalizadas para animaciones y fuentes -->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; } /* Fondo gris muy claro casi blanco */
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
     
     /* Animación de entrada fluida */
     .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -42,11 +40,10 @@
   </style>
 
   <script type="module">
-    // Importación de módulos de Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
     
-    // Configuración de la base de datos
     const firebaseConfig = {
       apiKey: "AIzaSyCRfERugbIVfAXtKa7mGdLLTm6xwxb5wlE",
       authDomain: "gestion-flotas-vw.firebaseapp.com",
@@ -58,19 +55,12 @@
     
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     
-    // Variables de estado
     let cocheActual = null;
     window.nombreAgenciaGlobal = ""; 
 
-    // 1. OBJETO DE CREDENCIALES
-    const credencialesRenting = {
-        "ARVAL": "Arval2026", "VW RENTING": "Vw2026", "ATHLON": "Athlon2026", 
-        "ALPHABET": "Alphabet2026", "AYVENS": "Ayvens2026", "SANTANDER RENTING": "Santander2026", 
-        "SABADELL": "Sabadell2026", "CAIXA": "Caixa2026"
-    };
-
-    // 2. OBJETO DE LOGOS (Apuntando a tu repositorio en GitHub)
+    // Repositorio centralizado de Logotipos corporativos (Mighty Co-Branding)
     const logosRenting = {
         "ARVAL": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/arval.png",
         "VW RENTING": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/vwrenting.png",
@@ -82,65 +72,62 @@
         "CAIXA": "https://raw.githubusercontent.com/vwmadrid/Renting/main/images/caixa.png"
     };
 
-    // 3. LÓGICA DE LOGIN
-    window.verificarAcceso = function() {
+    // FUNCIÓN DE VERIFICACIÓN DE ACCESO SEGURA
+    window.verificarAcceso = async function() {
         const usuarioInput = document.getElementById('inputUsuario').value.trim().toUpperCase();
         const passInput = document.getElementById('inputPassword').value.trim();
 
         if (!usuarioInput || !passInput) {
-            return Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Complete sus credenciales.', confirmButtonColor: '#001e50' });
+            return Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Complete sus credenciales corporativas.', confirmButtonColor: '#001e50' });
         }
 
         const btn = document.getElementById('btnLogin');
+        const textoOriginalBtn = btn.innerHTML;
         btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Autenticando...';
 
-        setTimeout(() => {
-            if (credencialesRenting[usuarioInput] && credencialesRenting[usuarioInput] === passInput) {
-               // Dentro de verificarAcceso, cuando el login es correcto:
-window.nombreAgenciaGlobal = usuarioInput;
+        // Estructuración del correo virtual seguro para Firebase Auth
+        const emailSeguro = `${usuarioInput.toLowerCase().replace(/\s/g, '')}@b2b.castellanawagen.es`;
 
-// Guardar sesión permanentemente (recordar usuario y pass)
-localStorage.setItem('gescar_session', JSON.stringify({
-    usuario: usuarioInput,
-    pass: passInput
-}));
-
-// ... resto del código que ya tienes para cambiar de pantalla
-                
-                // Muestra el nombre en el subtítulo del Dashboard
-                document.getElementById('hero-nombre-agencia').innerText = "Portal " + window.nombreAgenciaGlobal;
-                
-                // Inyecta la URL de la imagen en la etiqueta <img>
-                const imgElement = document.getElementById('dashboard-logo-img');
-                const txtElement = document.getElementById('dashboard-logo-txt');
-                
-                if (logosRenting[usuarioInput]) {
-                    imgElement.src = logosRenting[usuarioInput];
-                    imgElement.classList.remove('hidden');
-                    txtElement.classList.add('hidden');
-                } else {
-                    imgElement.classList.add('hidden');
-                    txtElement.innerText = window.nombreAgenciaGlobal;
-                    txtElement.classList.remove('hidden');
-                }
-
-                document.getElementById('nav-agency-name').innerText = window.nombreAgenciaGlobal;
-
-                // Cambio de pantalla alterando las clases CSS
-                document.getElementById('pantalla-login').classList.add('hidden');
-                document.getElementById('pantalla-tracker').classList.remove('hidden');
-                document.getElementById('pantalla-tracker').classList.add('flex', 'animate-fade-in');
-
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Conexión Establecida', showConfirmButton: false, timer: 2000 });
+        try {
+            // Validación directa en los servidores encriptados de Google
+            await signInWithEmailAndPassword(auth, emailSeguro, passInput);
+            
+            window.nombreAgenciaGlobal = usuarioInput;
+            
+            // Recordar sesión guardando credenciales de forma local de forma persistente
+            localStorage.setItem('gescar_session', JSON.stringify({ usuario: usuarioInput, pass: passInput }));
+            
+            // Actualización dinámica del Dashboard principal
+            document.getElementById('hero-nombre-agencia').innerText = "Portal " + window.nombreAgenciaGlobal;
+            
+            const imgElement = document.getElementById('dashboard-logo-img');
+            const txtElement = document.getElementById('dashboard-logo-txt');
+            
+            if (logosRenting[usuarioInput]) {
+                imgElement.src = logosRenting[usuarioInput];
+                imgElement.classList.remove('hidden');
+                txtElement.classList.add('hidden');
             } else {
-                Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Credenciales incorrectas.', confirmButtonColor: '#ef4444' });
-                document.getElementById('inputPassword').value = '';
-                btn.innerHTML = 'ACCEDER AL SISTEMA <i class="ph-bold ph-arrow-right"></i>';
+                imgElement.classList.add('hidden');
+                txtElement.innerText = window.nombreAgenciaGlobal;
+                txtElement.classList.remove('hidden');
             }
-        }, 500); 
+
+            document.getElementById('nav-agency-name').innerText = window.nombreAgenciaGlobal;
+
+            // Transición limpia de interfaz entre pantallas
+            document.getElementById('pantalla-login').classList.add('hidden');
+            document.getElementById('pantalla-tracker').classList.remove('hidden');
+            document.getElementById('pantalla-tracker').classList.add('flex', 'animate-fade-in');
+
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Credenciales corporativas inválidas o no autorizadas.', confirmButtonColor: '#ef4444' });
+            document.getElementById('inputPassword').value = '';
+            btn.innerHTML = textoOriginalBtn;
+        }
     };
 
-    // Fallback de código por si la imagen de GitHub no carga
+    // Función de contingencia visual para logotipos
     window.logoError = function() {
         document.getElementById('dashboard-logo-img').classList.add('hidden');
         const txtElement = document.getElementById('dashboard-logo-txt');
@@ -148,14 +135,7 @@ localStorage.setItem('gescar_session', JSON.stringify({
         txtElement.classList.remove('hidden');
     };
 
-    // Evento para iniciar sesión presionando la tecla Enter
-    window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('inputPassword').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') window.verificarAcceso();
-        });
-    });
-
-    // 4. LÓGICA DE BÚSQUEDA DE VEHÍCULO
+    // BÚSQUEDA DE VEHÍCULOS EN FIRESTORE DB
     window.buscarCoche = async function() {
       const input = document.getElementById('inputMatricula');
       const mat = input.value.replace(/\s/g, '').toUpperCase();
@@ -167,21 +147,23 @@ localStorage.setItem('gescar_session', JSON.stringify({
       try {
         const q = query(collection(db, "vehiculos"), where("matricula", "==", mat));
         const querySnapshot = await getDocs(q);
+        
         if (querySnapshot.empty) {
           btn.innerHTML = '<i class="ph-bold ph-magnifying-glass text-xl text-white"></i>';
           document.getElementById('resultado').style.display = 'none'; 
-          return Swal.fire({ icon: 'info', title: 'No localizado', text: 'Vehículo no encontrado.', confirmButtonColor: '#001e50' });
+          return Swal.fire({ icon: 'info', title: 'No localizado', text: 'Vehículo no encontrado en los registros activos de la campa.', confirmButtonColor: '#001e50' });
         }
+        
         cocheActual = querySnapshot.docs[0].data();
         window.mostrarTracker(cocheActual);
         btn.innerHTML = '<i class="ph-bold ph-magnifying-glass text-xl text-white"></i>';
       } catch (error) { 
         btn.innerHTML = '<i class="ph-bold ph-magnifying-glass text-xl text-white"></i>';
-        Swal.fire({ icon: 'error', title: 'Error de red', confirmButtonColor: '#ef4444' }); 
+        Swal.fire({ icon: 'error', title: 'Error de comunicación', text: 'Revise su conexión de red.', confirmButtonColor: '#ef4444' }); 
       }
     };
 
-    // 5. CONSTRUCCIÓN HTML DEL TIMELINE
+    // MONTAJE E INYECTADO DEL TIMELINE EN MODO CLARO PREMIUM
     window.mostrarTracker = function(c) {
        const resDiv = document.getElementById('resultado');
        resDiv.style.display = 'block';
@@ -225,11 +207,10 @@ localStorage.setItem('gescar_session', JSON.stringify({
 
        html += '</div>';
        document.getElementById('timelineRenting').innerHTML = html;
-
        document.getElementById('btnNotificar').style.display = (c.pasoAInventario === true) ? 'flex' : 'none';
     };
 
-    // 6. FUNCIONES DE PORTAPAPELES Y WHATSAPP
+    // AUTOMATIZACIÓN DE MENSAJES Y COPIADO EN PORTAPAPELES
     window.copiarAlPortapapeles = function(textoCodificado) {
       navigator.clipboard.writeText(decodeURIComponent(textoCodificado)).then(() => {
         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Copiado al portapapeles', showConfirmButton: false, timer: 2000 });
@@ -272,16 +253,42 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
         customClass: { popup: 'rounded-3xl' }
       });
     };
+
+    // GESTIÓN AUTOMÁTICA DE PERSISTENCIA DE SESIÓN (AUTOLOGIN)
+    window.onload = function() {
+        // Vinculamos los eventos del teclado
+        document.getElementById('inputPassword').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') window.verificarAcceso();
+        });
+
+        // Verificación de credenciales en caché
+        const sesionGuardada = localStorage.getItem('gescar_session');
+        if (sesionGuardada) {
+            try {
+                const { usuario, pass } = JSON.parse(sesionGuardada);
+                document.getElementById('inputUsuario').value = usuario;
+                document.getElementById('inputPassword').value = pass;
+                window.verificarAcceso(); 
+            } catch (e) {
+                localStorage.removeItem('gescar_session');
+            }
+        }
+    };
+
+    // CONTROL DE CIERRE DE SESIÓN SEGURO
+    window.cerrarSesion = function() {
+        localStorage.removeItem('gescar_session');
+        location.reload();
+    };
   </script>
 </head>
 
 <body class="min-h-screen flex flex-col relative selection:bg-[#00B0F0] selection:text-white">
   
-  <!-- CABECERA SUPERIOR (Se muestra tras el login) -->
   <header id="main-header" class="w-full border-b border-slate-200 bg-white hidden relative z-50 shadow-sm">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-4">
-            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" class="h-8 w-auto">
+            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" class="h-8 w-auto" alt="Volkswagen">
             <div class="h-6 w-px bg-slate-200"></div>
             <span class="text-[#001e50] font-bold text-sm tracking-widest uppercase">Castellana Wagen</span>
         </div>
@@ -290,27 +297,18 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
                 <i class="ph-fill ph-user text-[#00B0F0]"></i>
             </div>
             <span id="nav-agency-name" class="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Agencia</span>
-            <button onclick="window.cerrarSesion()" class="ml-4 text-slate-400 hover:text-red-500 transition">
+            <button onclick="window.cerrarSesion()" title="Cerrar Sesión" class="ml-4 text-slate-400 hover:text-red-500 transition">
                 <i class="ph-bold ph-sign-out text-xl"></i>
             </button>
-        </div>
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
-                <i class="ph-fill ph-user text-[#00B0F0]"></i>
-            </div>
-            <span id="nav-agency-name" class="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Agencia</span>
         </div>
     </div>
   </header>
 
-  <!-- ============================================== -->
-  <!-- PANTALLA 1: FORMULARIO DE LOGIN -->
-  <!-- ============================================== -->
   <main id="pantalla-login" class="flex-1 flex items-center justify-center p-4 relative z-10">
     <div class="bg-white p-10 sm:p-12 rounded-[2rem] w-full max-w-md shadow-2xl shadow-slate-200 border border-slate-100">
         
         <div class="flex flex-col items-center mb-10">
-            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" class="h-16 w-auto mb-6">
+            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" class="h-16 w-auto mb-6" alt="Volkswagen">
             <h2 class="text-3xl font-black text-[#001e50] tracking-tight">GesCar B2B</h2>
             <p class="text-sm font-bold text-[#00B0F0] uppercase tracking-[0.2em] mt-2">Delivery Network</p>
         </div>
@@ -337,26 +335,21 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
     </div>
   </main>
 
-  <!-- ============================================== -->
-  <!-- PANTALLA 2: DASHBOARD (DISEÑO LIMPIO) -->
-  <!-- ============================================== -->
   <main id="pantalla-tracker" class="flex-1 hidden flex-col items-center p-4 sm:p-8 w-full max-w-5xl mx-auto relative z-10">
     
-    <!-- CONTENEDOR DEL LOGO DE LA AGENCIA GIGANTE -->
-    <!-- NOTA CÓDIGO: Las clases w-48 sm:w-72 md:w-96 y h-32 sm:h-48 aumentan radicalmente el tamaño -->
     <div class="w-full bg-white rounded-[2rem] p-8 sm:p-12 mb-8 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-8 text-center sm:text-left">
         
-        <!-- LOGO RENTING AMPLIADO -->
         <div class="w-48 sm:w-72 md:w-96 h-32 sm:h-48 flex items-center justify-center shrink-0">
-            <!-- La imagen ocupa el 100% del contenedor manteniendo su proporción -->
-            <img id="dashboard-logo-img" src="" class="w-full h-full object-contain hidden" onerror="window.logoError()">
+            <img id="dashboard-logo-img" src="" class="w-full h-full object-contain hidden" onerror="window.logoError()" alt="Logo Operador">
             <span id="dashboard-logo-txt" class="hidden text-[#001e50] font-black text-4xl sm:text-5xl tracking-widest uppercase px-2"></span>
         </div>
         
-        <!-- TEXTO DEL BANNER -->
         <div>
             <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-4">
-                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00B0F0] opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-[#00B0F0]"></span></span>
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00B0F0] opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-[#00B0F0]"></span>
+                </span>
                 <span class="text-[10px] font-bold text-[#001e50] uppercase tracking-widest">Portal Conectado</span>
             </div>
             <h2 id="hero-nombre-agencia" class="text-3xl sm:text-4xl font-black text-[#001e50] tracking-tight mb-2">Portal Agencia</h2>
@@ -364,10 +357,8 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
         </div>
     </div>
 
-    <!-- REJILLA DE BÚSQUEDA Y RESULTADOS -->
     <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- CAJA DE BÚSQUEDA -->
         <div class="lg:col-span-5 flex flex-col gap-6">
             <div class="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
                 <h3 class="text-sm font-bold text-[#001e50] uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -382,7 +373,6 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
             </div>
         </div>
         
-        <!-- TIMELINE DE RESULTADOS -->
         <div class="lg:col-span-7">
             <div id="resultado" style="display: none;" class="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 h-full">
                 
@@ -396,7 +386,6 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
                     </div>
                 </div>
 
-                <!-- Contenedor del cronograma que se genera con JS -->
                 <div id="timelineRenting" class="mb-10"></div>
                 
                 <button id="btnNotificar" onclick="window.notificarCliente()" style="display: none;" class="w-full bg-[#001e50] text-white font-black py-5 rounded-xl flex items-center justify-center gap-3 hover:bg-[#00B0F0] transition shadow-lg shadow-blue-900/20 text-sm uppercase tracking-widest">
@@ -409,7 +398,6 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
   </main>
 
   <script>
-    // Lógica adicional para mostrar el encabezado solo después de iniciar sesión
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.target.classList.contains('hidden')) {
@@ -418,22 +406,6 @@ Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volk
       });
     });
     observer.observe(document.getElementById('pantalla-login'), { attributes: true, attributeFilter: ['class'] });
-    // Autologin al cargar la página
-    window.onload = function() {
-        const sesionGuardada = localStorage.getItem('gescar_session');
-        if (sesionGuardada) {
-            const { usuario, pass } = JSON.parse(sesionGuardada);
-            document.getElementById('inputUsuario').value = usuario;
-            document.getElementById('inputPassword').value = pass;
-            window.verificarAcceso(); // Ejecuta el login automáticamente
-        }
-    };
-
-    // Función de cierre de sesión
-    window.cerrarSesion = function() {
-        localStorage.removeItem('gescar_session');
-        location.reload(); // Recarga la página volviendo al login
-    };
   </script>
 </body>
 </html>
