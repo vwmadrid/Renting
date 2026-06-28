@@ -3,24 +3,16 @@
 <head>
   <meta name="author" content="Manuel Arjona Carrera & Miriam Olmo Fernández">
   <meta name="copyright" content="© 2026 Manuel Arjona Carrera & Miriam Olmo Fernández. Todos los derechos reservados.">
-  <meta name="application-name" content="GesCar OS / M2 Code Systems">
+  <meta name="application-name" content="GesCar OS / M2 Code Systems, S.L.">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Agencias - Castellana Wagen M-40</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <script type="module">
-    /**
-     * 🔥 2. CABECERA DE PROPIEDAD INTELECTUAL 🔥
-     * @project GesCar OS (Portal de Renting)
-     * @author Manuel Arjona Carrera & Miriam Olmo Fernández (Equipo M2 Code Systems)
-     * @copyright © 2026 Manuel Arjona Carrera & Miriam Olmo Fernández. Todos los derechos reservados.
-     * * Este código fuente es propiedad exclusiva de sus autores.
-     * Queda estrictamente prohibida su copia, distribución, modificación 
-     * o uso comercial sin autorización expresa por escrito.
-     */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
     
@@ -32,11 +24,90 @@
       messagingSenderId: "1070891769268",
       appId: "1:1070891769268:web:47b04e6d62e576038966e1"
     };
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
     let cocheActual = null;
+    window.nombreAgenciaGlobal = ""; 
 
-    // Función de búsqueda
+    // 1. CREDENCIALES
+    const credencialesRenting = {
+        "ARVAL": "Arval2026",
+        "VW RENTING": "Vw2026",
+        "ATHLON": "Athlon2026",
+        "ALPHABET": "Alphabet2026",
+        "AYVENS": "Ayvens2026",
+        "SANTANDER RENTING": "Santander2026",
+        "SABADELL": "Sabadell2026",
+        "CAIXA": "Caixa2026"
+    };
+   // 2. LOGOS (Repositorio propio para máxima estabilidad y seguridad)
+    const logosRenting = {
+        "ARVAL": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/arval.png",
+        "VW RENTING": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/vwrenting.png",
+        "ATHLON": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/athlon.png",
+        "ALPHABET": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/alphabet.png",
+        "AYVENS": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/ayvens.png",
+        "SANTANDER RENTING": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/santander.png",
+        "SABADELL": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/sabadell.png",
+        "CAIXA": "https://raw.githubusercontent.com/vwmadrid/Entregas/main/Renting/images/caixa.png"
+    };
+
+    // 3. LOGIN Y CONSTRUCCIÓN DEL BANNER VIP
+    window.verificarAcceso = function() {
+        const usuarioInput = document.getElementById('inputUsuario').value.trim().toUpperCase();
+        const passInput = document.getElementById('inputPassword').value.trim();
+
+        if (!usuarioInput || !passInput) {
+            return Swal.fire('Acceso denegado', 'Complete sus credenciales corporativas.', 'warning');
+        }
+
+        if (credencialesRenting[usuarioInput] && credencialesRenting[usuarioInput] === passInput) {
+            window.nombreAgenciaGlobal = usuarioInput;
+
+            // Actualizamos el Banner Gigante (Hero)
+            document.getElementById('hero-nombre-agencia').innerText = window.nombreAgenciaGlobal;
+            
+            // Configurar Logo o Letra Inicial
+            const imgElement = document.getElementById('hero-logo-img');
+            const txtElement = document.getElementById('hero-logo-txt');
+            
+            if (logosRenting[usuarioInput]) {
+                imgElement.src = logosRenting[usuarioInput];
+                imgElement.classList.remove('hidden');
+                txtElement.classList.add('hidden');
+            } else {
+                imgElement.classList.add('hidden');
+                txtElement.innerText = window.nombreAgenciaGlobal.charAt(0);
+                txtElement.classList.remove('hidden');
+            }
+
+            // Cambiar de pantalla con una transición suave
+            document.getElementById('pantalla-login').classList.add('hidden');
+            document.getElementById('pantalla-tracker').classList.remove('hidden');
+            document.getElementById('pantalla-tracker').classList.add('flex', 'animate-fade-in');
+
+        } else {
+            Swal.fire('Acceso denegado', 'Credenciales incorrectas.', 'error');
+            document.getElementById('inputPassword').value = '';
+        }
+    };
+
+    // Función a prueba de fallos para la imagen (se llama desde el HTML)
+    window.logoError = function() {
+        document.getElementById('hero-logo-img').classList.add('hidden');
+        document.getElementById('hero-logo-txt').innerText = window.nombreAgenciaGlobal.charAt(0);
+        document.getElementById('hero-logo-txt').classList.remove('hidden');
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('inputPassword').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') { window.verificarAcceso(); }
+        });
+    });
+
+    // 4. BÚSQUEDA DE VEHÍCULO
     window.buscarCoche = async function() {
       const input = document.getElementById('inputMatricula');
       const mat = input.value.replace(/\s/g, '').toUpperCase();
@@ -47,78 +118,44 @@
         const q = query(collection(db, "vehiculos"), where("matricula", "==", mat));
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
-          Swal.fire('No encontrado', 'No hay registros en nuestras instalaciones.', 'info');
+          Swal.fire('No encontrado', 'Vehículo no localizado en la campa.', 'info');
           document.getElementById('resultado').style.display = 'none'; return;
         }
         cocheActual = querySnapshot.docs[0].data();
-        mostrarTracker(cocheActual);
+        window.mostrarTracker(cocheActual);
         Swal.close();
-      } catch (error) { Swal.fire('Error', 'Fallo de conexión.', 'error'); }
+      } catch (error) { Swal.fire('Error', 'Fallo de red.', 'error'); }
     };
 
-    // Función para mostrar resultados con diseño Profesional tipo Correos/Amazon
+    // 5. RENDERIZADO DEL TRACKER (ESTILO AMAZON/CORREOS)
     window.mostrarTracker = function(c) {
        document.getElementById('resultado').style.display = 'block';
        document.getElementById('resModelo').innerText = c.modelo;
        document.getElementById('resMatricula').innerText = c.matricula;
 
-       // Contenedor principal de la línea vertical
        let html = '<div class="relative border-l-2 border-gray-200 ml-4 space-y-8 mt-8 mb-10">';
-       
-       // Configuración de cada paso con sus emojis, colores y textos dinámicos
        const pasos = [
-         { 
-           ok: !!c.fechaDoc, 
-           t: 'Documentación', 
-           desc: c.fechaDoc ? `Recibida y validada el ${c.fechaDoc}` : 'Pendiente de recibir documentación',
-           icon: '📄', 
-           colorBg: 'bg-blue-500' 
-         },
-         { 
-           ok: !!c.fechaTransporte, 
-           t: 'En Tránsito', 
-           desc: c.fechaTransporte ? `Entrada en campa ${c.fechaTransporte}` : 'Esperando entrada a la campa',
-           icon: '🚛', 
-           colorBg: 'bg-indigo-500' 
-         },
-         { 
-           ok: !!c.fechaPreparacion, 
-           t: 'En Preparación', 
-           desc: c.fechaPreparacion ? `En preparación desde el ${c.fechaPreparacion}` : 'Pendiente de revisión y preparación de pre-entrega',
-           icon: '🛠️', 
-           colorBg: 'bg-amber-500' 
-         },
-         { 
-           ok: c.pasoAInventario === true, 
-           t: 'Listo para Entrega', 
-           desc: c.pasoAInventario ? 'Vehículo preparado, dar disponibilidad al cliente a partir de hoy para que agende la recogida de su nuevo Volkswagen' : 'Esperando finalización de procesos',
-           icon: '🏁', 
-           colorBg: 'bg-[#25D366]' 
-         }
+         { ok: !!c.fechaDoc, t: 'Documentación', desc: c.fechaDoc ? `Validada el ${c.fechaDoc}` : 'Pendiente de documentación', icon: '📄', colorBg: 'bg-[#00B0F0]' },
+         { ok: !!c.fechaTransporte, t: 'En Tránsito', desc: c.fechaTransporte ? `Entrada en campa ${c.fechaTransporte}` : 'Esperando recepción física', icon: '🚛', colorBg: 'bg-indigo-500' },
+         { ok: !!c.fechaPreparacion, t: 'En Preparación', desc: c.fechaPreparacion ? `Taller: ${c.fechaPreparacion}` : 'Pendiente de pre-entrega', icon: '🛠️', colorBg: 'bg-amber-500' },
+         { ok: c.pasoAInventario === true, t: 'Listo para Entrega', desc: c.pasoAInventario ? 'Vehículo preparado. Informe al cliente.' : 'Procesos en curso', icon: '🏁', colorBg: 'bg-[#25D366]' }
        ];
 
        pasos.forEach((p, index) => {
-         // Estilos dependiendo de si el paso está completado o no
-         let bgClass = p.ok ? `${p.colorBg} text-white shadow-md border-transparent` : 'bg-gray-50 border-2 border-gray-300 text-transparent grayscale';
+         let bgClass = p.ok ? `${p.colorBg} text-white shadow-md` : 'bg-gray-100 border-2 border-gray-300 text-transparent grayscale';
          let textTitle = p.ok ? 'text-[#001e50]' : 'text-gray-400';
          let textDesc = p.ok ? 'text-gray-600' : 'text-gray-400';
-         let pulseHtml = "";
-         
-         // Efecto visual: si este paso está Ok, pero el SIGUIENTE no lo está, significa que es el "Paso Actual". Le ponemos un efecto de latido.
-         let nextOk = pasos[index + 1] ? pasos[index + 1].ok : false;
-         if (p.ok && !nextOk && index !== 3) {
-             pulseHtml = `<span class="absolute inline-flex h-full w-full rounded-full ${p.colorBg} opacity-50 animate-ping"></span>`;
-         }
+         let pulseHtml = (p.ok && (!pasos[index + 1] || !pasos[index + 1].ok) && index !== 3) 
+            ? `<span class="absolute inline-flex h-full w-full rounded-full ${p.colorBg} opacity-50 animate-ping"></span>` : "";
 
-         // Dibujamos la tarjeta del paso
          html += `
-         <div class="relative flex items-center gap-4">
+         <div class="relative flex items-center gap-4 group">
             <div class="absolute -left-[17px] w-8 h-8 rounded-full flex items-center justify-center text-sm ring-4 ring-white transition-all duration-500 z-10 ${bgClass}">
                 ${pulseHtml}
                 <span class="relative z-20">${p.ok ? p.icon : '⏳'}</span>
             </div>
-            <div class="pl-8">
-                <h3 class="font-black text-[14px] uppercase tracking-widest ${textTitle} transition-colors duration-300">${p.t}</h3>
+            <div class="pl-8 transition-transform duration-300 group-hover:translate-x-1">
+                <h3 class="font-black text-[14px] uppercase tracking-widest ${textTitle}">${p.t}</h3>
                 <p class="text-[11px] font-bold ${textDesc} mt-0.5">${p.desc}</p>
             </div>
          </div>`;
@@ -127,69 +164,149 @@
        html += '</div>';
        document.getElementById('timelineRenting').innerHTML = html;
 
-       // LÓGICA DEL BOTÓN: Totalmente forzada a mostrarse solo si está listo en inventario
-       const btnNotificar = document.getElementById('btnNotificar');
-       if (c.pasoAInventario === true) {
-           btnNotificar.style.display = 'flex';
-       } else {
-           btnNotificar.style.display = 'none';
-       }
+       document.getElementById('btnNotificar').style.display = (c.pasoAInventario === true) ? 'flex' : 'none';
     };
 
-    // Función de WhatsApp actualizada
+    // 6. HERRAMIENTAS DE NOTIFICACIÓN CORPORATIVA
+    window.copiarAlPortapapeles = function(textoCodificado) {
+      navigator.clipboard.writeText(decodeURIComponent(textoCodificado)).then(() => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Copiado al portapapeles', showConfirmButton: false, timer: 2500 });
+      });
+    };
+
     window.notificarCliente = function() {
       if (!cocheActual) return;
-
       const LINK_APP_CLIENTES = "https://vwmadrid.github.io/Entregas/"; 
       
-      let estaListo = cocheActual.pasoAInventario === true;
-      let mensaje = "";
+      const whatsappText = `🚙 *Entrega de su nuevo vehículo*\n\nEstimado/a cliente,\n\nNos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volkswagen ${cocheActual.modelo}* (Matrícula: ${cocheActual.matricula}) ya se encuentra matriculado y preparado para su entrega.\n\nPara garantizar una experiencia premium, la recogida se realizará en el concesionario oficial *Castellana Wagen M-40*.\n\nHemos habilitado un *Portal Privado de Cliente* para usted. Desde allí podrá:\n📅 Seleccionar el día y hora exactos de su recogida.\n📱 Consultar las guías interactivas de su coche.\n📍 Ver la ubicación de las instalaciones.\n\nPor favor, acceda a su portal oficial para agendar su cita en el siguiente enlace seguro:\n👉 ${LINK_APP_CLIENTES}\n\nUn cordial saludo,\n*El equipo de ${window.nombreAgenciaGlobal}*`;
+      const emailSubject = `Su nuevo Volkswagen ${cocheActual.modelo} está listo para entrega`;
+      const emailBody = whatsappText.replace(/\*/g, '').replace(/\n/g, '%0D%0A');
 
-      if (estaListo) {
-        mensaje = `Estimado cliente, le informamos que su coche ${cocheActual.modelo} con matrícula ${cocheActual.matricula} ya está listo para su entrega. 
-        
-A continuación le dejamos la web donde podrá agendar la entrega de su vehículo: 
-👉 ${LINK_APP_CLIENTES}`;
-      } else {
-        mensaje = `Hola, le informamos desde su agencia de Renting que su vehículo ${cocheActual.modelo} con matrícula ${cocheActual.matricula} se encuentra actualmente en fase de preparación en Castellana Wagen M-40. Le avisaremos en cuanto esté listo para su recogida.`;
-      }
+      Swal.fire({
+        title: 'ENVIAR INVITACIÓN',
+        html: `
+          <div style="text-align:left; font-size:13px; color:#555; margin-bottom:15px; line-height:1.4;">
+            El mensaje incluye un enlace directo para que su cliente elija el día y la hora de recogida en Castellana Wagen.
+          </div>
+          <div style="background:#f1f5f9; border-left: 4px solid #00B0F0; padding:15px; border-radius:8px; text-align:left; font-size:11px; font-family:monospace; color:#334155; white-space: pre-wrap; margin-bottom: 25px; max-height: 180px; overflow-y: auto;">🚙 *Entrega de su nuevo vehículo*
 
-      window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+Estimado/a cliente,
+
+Nos complace informarle desde *${window.nombreAgenciaGlobal}* que su nuevo *Volkswagen ${cocheActual.modelo}* (Matrícula: ${cocheActual.matricula}) ya se encuentra matriculado y preparado para su entrega...
+
+👉 ${LINK_APP_CLIENTES}</div>
+          
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <button onclick="window.open('https://wa.me/?text=${encodeURIComponent(whatsappText)}', '_blank')" style="background:#25D366; color:white; border:none; padding:14px; border-radius:10px; font-weight:900; font-size: 14px; cursor:pointer; width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
+              <i class="ph-fill ph-whatsapp-logo text-2xl"></i> Abrir WhatsApp
+            </button>
+            <button onclick="window.open('mailto:?subject=${encodeURIComponent(emailSubject)}&body=${emailBody}', '_blank')" style="background:#001e50; color:white; border:none; padding:14px; border-radius:10px; font-weight:900; font-size: 14px; cursor:pointer; width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
+              <i class="ph-fill ph-envelope-simple text-2xl"></i> Crear Email
+            </button>
+            <button onclick="window.copiarAlPortapapeles('${encodeURIComponent(whatsappText)}')" style="background:#64748b; color:white; border:none; padding:14px; border-radius:10px; font-weight:900; font-size: 14px; cursor:pointer; width:100%; display:flex; justify-content:center; align-items:center; gap:8px;">
+              <i class="ph-fill ph-copy text-2xl"></i> Copiar Texto (Portapapeles)
+            </button>
+          </div>
+        `,
+        showConfirmButton: false, showCloseButton: true, width: '500px', customClass: { popup: 'rounded-3xl' }
+      });
     };
   </script>
-</head>
-<body>
 
-  <header class="w-full bg-white border-b border-gray-200 shadow-sm py-5 px-6">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14">
-                <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" alt="VW Logo" class="w-full h-full object-contain">
-            </div>
-            <div>
-                <h1 class="text-xl font-black text-[#001e50] uppercase tracking-tight">Castellana Wagen M-40</h1>
-                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Portal Agencias de Renting</p>
-            </div>
+  <style>
+    /* Efecto de entrada suave */
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body class="bg-[#f8fafc] min-h-screen flex flex-col font-sans">
+
+  <header class="w-full bg-white border-b border-gray-200 shadow-sm py-4 px-6 z-10 relative">
+    <div class="max-w-5xl mx-auto flex items-center gap-4">
+        <div class="w-10 h-10">
+            <img src="https://cdn.worldvectorlogo.com/logos/volkswagen-logo-2019.svg" alt="VW Logo" class="w-full h-full object-contain">
+        </div>
+        <div>
+            <h1 class="text-lg font-black text-[#001e50] uppercase tracking-tight leading-tight">Castellana Wagen M-40</h1>
+            <p class="text-[9px] font-bold text-[#00B0F0] uppercase tracking-widest">B2B Delivery Network</p>
         </div>
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col items-center justify-center p-6">
-    <div class="bg-white p-10 rounded-2xl shadow-xl w-full max-w-lg border-t-8 border-[#001e50] text-center mb-6">
-        <h2 class="text-2xl font-black text-[#001e50] mb-2">Localizador de Flota</h2>
-        <input type="text" id="inputMatricula" placeholder="EJ: 1234 ABC" class="w-full px-6 py-5 bg-gray-50 border-2 rounded-xl text-2xl font-black text-center uppercase tracking-widest mb-4">
-        <button onclick="buscarCoche()" class="w-full bg-[#001e50] text-white font-black py-4 rounded-xl text-lg uppercase">Buscar Vehículo</button>
+  <main id="pantalla-login" class="flex-1 flex flex-col items-center justify-center p-6 relative">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -right-[10%] w-[500px] h-[500px] rounded-full bg-blue-100/50 blur-3xl"></div>
+        <div class="absolute -bottom-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-indigo-100/50 blur-3xl"></div>
     </div>
-    
-    <div id="resultado" style="display: none;" class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-       <h2 id="resModelo" class="text-xl font-black text-[#001e50] uppercase text-center mb-1">Modelo</h2>
-       <p id="resMatricula" class="text-center font-bold text-gray-500 bg-gray-100 w-max mx-auto px-3 py-1 rounded mb-6"></p>
-       <div id="timelineRenting" class="mb-8"></div>
-       
-       <button id="btnNotificar" onclick="notificarCliente()" style="display: none;" class="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
-         <i class="ph-fill ph-whatsapp-logo text-2xl"></i> Avisar al Cliente
-       </button>
+
+    <div class="bg-white/80 backdrop-blur-xl p-10 rounded-[30px] shadow-2xl shadow-blue-900/10 w-full max-w-sm border border-white relative z-10">
+        <div class="bg-gradient-to-br from-[#001e50] to-[#00B0F0] w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-blue-500/30 rotate-3">
+            <i class="ph-fill ph-buildings text-4xl text-white -rotate-3"></i>
+        </div>
+        
+        <h2 class="text-2xl font-black text-[#001e50] mb-1">Acceso a Portal</h2>
+        <p class="text-xs text-gray-500 mb-8 font-medium">Plataforma exclusiva para agencias.</p>
+        
+        <div class="space-y-4 mb-8">
+            <input type="text" id="inputUsuario" placeholder="CÓDIGO DE AGENCIA" class="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-black text-center uppercase tracking-widest outline-none focus:border-[#00B0F0] focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder:font-medium placeholder:tracking-normal">
+            
+            <input type="password" id="inputPassword" placeholder="CONTRASEÑA DE ACCESO" class="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl text-sm font-black text-center outline-none focus:border-[#00B0F0] focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder:font-medium">
+        </div>
+        
+        <button onclick="window.verificarAcceso()" class="w-full bg-[#001e50] text-white font-black py-4 rounded-xl text-sm uppercase tracking-widest transition hover:bg-[#00B0F0] shadow-lg shadow-[#001e50]/20 hover:-translate-y-0.5">
+            Validar Acceso
+        </button>
     </div>
   </main>
+
+  <main id="pantalla-tracker" class="flex-1 hidden flex-col items-center p-4 sm:p-6 w-full max-w-2xl mx-auto">
+    
+    <div class="w-full bg-gradient-to-r from-[#001e50] via-[#003070] to-[#00B0F0] rounded-[30px] p-8 text-white mb-8 shadow-2xl shadow-blue-900/20 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden border border-blue-400/30">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+        
+        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-[#001e50] font-black text-4xl shadow-inner relative z-10 border-4 border-white/20 shrink-0">
+            <img id="hero-logo-img" src="" class="w-full h-full object-contain p-4 hidden" onerror="window.logoError()">
+            <span id="hero-logo-txt" class="hidden">A</span>
+        </div>
+        
+        <div class="text-center sm:text-left relative z-10">
+            <p class="text-xs font-bold tracking-widest text-blue-200 uppercase mb-1 drop-shadow-md">Portal Oficial de Entregas</p>
+            <h2 id="hero-nombre-agencia" class="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-lg">AGENCIA</h2>
+        </div>
+    </div>
+
+    <div class="bg-white p-8 rounded-[30px] shadow-xl shadow-gray-200/50 w-full border border-gray-100 mb-6">
+        <div class="flex items-center gap-3 mb-6">
+            <i class="ph-fill ph-magnifying-glass text-2xl text-[#00B0F0]"></i>
+            <h2 class="text-xl font-black text-[#001e50]">Localizar Vehículo</h2>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4">
+            <input type="text" id="inputMatricula" placeholder="MATRÍCULA / BASTIDOR" class="flex-1 px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl text-xl font-black text-center sm:text-left uppercase tracking-widest outline-none focus:border-[#00B0F0] transition placeholder:text-base placeholder:tracking-normal placeholder:font-medium">
+            <button onclick="window.buscarCoche()" class="bg-[#001e50] text-white font-black py-4 px-8 rounded-xl text-sm uppercase tracking-widest transition hover:bg-[#00B0F0] shadow-lg shadow-[#001e50]/20 shrink-0">
+                Buscar
+            </button>
+        </div>
+    </div>
+    
+    <div id="resultado" style="display: none;" class="w-full bg-white rounded-[30px] shadow-xl shadow-gray-200/50 p-8 border border-gray-100">
+       <div class="text-center mb-8 bg-gray-50 rounded-2xl p-6 border border-gray-100">
+           <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Vehículo Localizado</p>
+           <h2 id="resModelo" class="text-2xl font-black text-[#001e50] uppercase mb-3">Modelo</h2>
+           <div class="inline-flex items-center justify-center border-2 border-[#001e50] rounded-md px-3 py-1 bg-white">
+               <div class="bg-[#001e50] w-4 h-full absolute left-0 top-0"></div>
+               <span id="resMatricula" class="font-black text-lg tracking-widest text-[#001e50]"></span>
+           </div>
+       </div>
+
+       <div id="timelineRenting" class="mb-10 pl-2"></div>
+       
+       <button id="btnNotificar" onclick="window.notificarCliente()" style="display: none;" class="w-full bg-[#25D366] text-white font-black py-5 rounded-xl flex items-center justify-center gap-3 hover:bg-green-600 transition shadow-lg shadow-green-600/30 text-base uppercase tracking-widest">
+         <i class="ph-fill ph-paper-plane-right text-2xl"></i> Enviar Invitación al Cliente
+       </button>
+    </div>
+
+  </main>
+
 </body>
 </html>
